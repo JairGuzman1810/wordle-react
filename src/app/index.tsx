@@ -1,5 +1,7 @@
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { format } from "date-fns";
 import { Link } from "expo-router";
+import { useRef } from "react";
 import {
   Image,
   StyleSheet,
@@ -8,6 +10,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import SubscribeModal from "../components/SubscribeModal";
 import { ThemedText } from "../components/ThemedText";
 import { Colors } from "../constants/Colors";
 import { logoImageUri } from "../constants/Images";
@@ -15,6 +18,12 @@ import { logoImageUri } from "../constants/Images";
 export default function Index() {
   const colorScheme = useColorScheme();
   const Theme = Colors[colorScheme ?? "light"];
+  const subscribeModalRef = useRef<BottomSheetModal>(null);
+
+  const handlePresentModal = () => {
+    subscribeModalRef.current?.present();
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: Theme.background }]}>
       <View style={styles.header}>
@@ -40,7 +49,10 @@ export default function Index() {
           <ThemedText style={styles.buttonText}>Settings</ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, { borderColor: Theme.text }]}>
+        <TouchableOpacity
+          style={[styles.button, { borderColor: Theme.text }]}
+          onPress={handlePresentModal}
+        >
           <ThemedText style={styles.buttonText}>Subscribe</ThemedText>
         </TouchableOpacity>
       </View>
@@ -59,9 +71,12 @@ export default function Index() {
           </TouchableOpacity>
         </Link>
       </View>
+
+      <SubscribeModal bottomSheetRef={subscribeModalRef} />
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -12,6 +12,7 @@ export const Colors = {
     dark: DARK,
     gameBg: "#fff",
     playBtn: "#000",
+    bottomModal: "#fff",
   },
   dark: {
     text: "#fff",
@@ -19,5 +20,6 @@ export const Colors = {
     gameBg: "#000",
     gray: "#2C2C2E",
     playBtn: "#4A4A4A",
+    bottomModal: "#333",
   },
 };
