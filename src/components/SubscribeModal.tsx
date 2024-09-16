@@ -1,3 +1,6 @@
+import { Colors } from "@constants/Colors";
+import { gamesImageUri } from "@constants/Images";
+import { defaultStyles } from "@constants/Styles";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   BottomSheetBackdrop,
@@ -19,9 +22,6 @@ import {
   useColorScheme,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../constants/Colors"; // Assuming this is the same Colors used in Index.tsx
-import { gamesImageUri } from "../constants/Images";
-import { defaultStyles } from "../constants/Styles";
 import { ThemedText } from "./ThemedText";
 
 type SubscribeModalProps = {

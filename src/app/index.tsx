@@ -1,7 +1,12 @@
+import { SignedIn, SignedOut, useClerk } from "@clerk/clerk-expo";
+import SubscribeModal from "@components/SubscribeModal";
+import { ThemedText } from "@components/ThemedText";
+import { Colors } from "@constants/Colors";
+import { logoImageUri } from "@constants/Images";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { format } from "date-fns";
 import { Link } from "expo-router";
-import { useRef } from "react";
+import React, { useRef } from "react";
 import {
   Image,
   StyleSheet,
@@ -10,15 +15,12 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import SubscribeModal from "../components/SubscribeModal";
-import { ThemedText } from "../components/ThemedText";
-import { Colors } from "../constants/Colors";
-import { logoImageUri } from "../constants/Images";
 
 export default function MenuScreen() {
   const colorScheme = useColorScheme();
   const Theme = Colors[colorScheme ?? "light"];
   const subscribeModalRef = useRef<BottomSheetModal>(null);
+  const { signOut } = useClerk();
 
   const handlePresentModal = () => {
     subscribeModalRef.current?.present();
@@ -44,10 +46,26 @@ export default function MenuScreen() {
             <Text style={[styles.buttonText, styles.primaryText]}>Play</Text>
           </TouchableOpacity>
         </Link>
+        <SignedOut>
+          <Link
+            asChild
+            href={"/login"}
+            style={[styles.button, { borderColor: Theme.text }]}
+          >
+            <TouchableOpacity>
+              <ThemedText style={styles.buttonText}>Log in</ThemedText>
+            </TouchableOpacity>
+          </Link>
+        </SignedOut>
 
-        <TouchableOpacity style={[styles.button, { borderColor: Theme.text }]}>
-          <ThemedText style={styles.buttonText}>Settings</ThemedText>
-        </TouchableOpacity>
+        <SignedIn>
+          <TouchableOpacity
+            style={[styles.button, { borderColor: Theme.text }]}
+            onPress={() => signOut()}
+          >
+            <ThemedText style={styles.buttonText}>Sign out</ThemedText>
+          </TouchableOpacity>
+        </SignedIn>
 
         <TouchableOpacity
           style={[styles.button, { borderColor: Theme.text }]}

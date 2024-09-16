@@ -1,5 +1,5 @@
+import { Colors } from "@constants/Colors";
 import { Text, useColorScheme, type TextProps } from "react-native";
-import { Colors } from "../constants/Colors";
 
 export function ThemedText({ style, children, ...rest }: TextProps) {
   const colorScheme = useColorScheme();
