@@ -14,6 +14,7 @@ export const Colors = {
     playBtn: "#000",
     bottomModal: "#fff",
     closeModal: "#9e9e9e",
+    descriptionText: "#4f4f4f",
   },
   dark: {
     text: "#fff",
@@ -23,5 +24,6 @@ export const Colors = {
     playBtn: "#4A4A4A",
     bottomModal: "#333",
     closeModal: "#fff",
+    descriptionText: "#cbcbcb",
   },
 };

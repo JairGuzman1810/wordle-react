@@ -13,6 +13,7 @@ import React, { useCallback, useMemo } from "react";
 import {
   Image,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -20,6 +21,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../constants/Colors"; // Assuming this is the same Colors used in Index.tsx
 import { gamesImageUri } from "../constants/Images";
+import { defaultStyles } from "../constants/Styles";
 import { ThemedText } from "./ThemedText";
 
 type SubscribeModalProps = {
@@ -86,7 +88,7 @@ const SubscribeModal = ({ bottomSheetRef }: SubscribeModalProps) => {
             <Ionicons name="close" size={28} color={Theme.closeModal} />
           </TouchableOpacity>
         </View>
-        <BottomSheetScrollView>
+        <BottomSheetScrollView showsVerticalScrollIndicator={false}>
           <ThemedText style={styles.containerHeadline}>
             Unlimited Play.{"\n"}Try free for 7 days.
           </ThemedText>
@@ -94,13 +96,52 @@ const SubscribeModal = ({ bottomSheetRef }: SubscribeModalProps) => {
           <View style={styles.benefitsContainer}>
             <MarkedList counterRenderer={disc} lineStyle={styles.benefitList}>
               {BENEFITS.map((value, index) => (
-                <ThemedText style={styles.benefitText} key={index}>
+                <ThemedText
+                  style={[styles.benefitText, { color: Theme.descriptionText }]}
+                  key={index}
+                >
                   {value}
                 </ThemedText>
               ))}
             </MarkedList>
           </View>
+          <ThemedText
+            style={[styles.disclaimerText, { color: Theme.descriptionText }]}
+          >
+            If you subscribe to The New York Times via this app, payment for
+            your subscription will be automatically charged to your Apple ID
+            account upon your confirmation of purchase with Apple. Your Apple ID
+            account will be automatically charged for renewal at the applicable
+            rate shown to you at the time of subscription every calendar month
+            (for monthly subscriptions) or every year (for annual subscriptions)
+            within 24-hours prior to the start of your next billing period. For
+            special introductory offers, you will be automatically charged the
+            applicable introductory rate shown to you at the time of
+            subscription for the stated introductory period and the standard
+            rate rate shown to you at the time of subscription thereafter. You
+            will be charged in advance. Subscriptions continue automatically
+            until you cancel. Cancellation takes effect at the end of your
+            current billing period. You can manage and cancel subscriptions in
+            your account settings on the App Store. To cancel, please turn off
+            auto-renew at lead; 24-hours before the end of your current billing
+            period from your iTunes account settings.
+          </ThemedText>
         </BottomSheetScrollView>
+      </View>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: bottom, backgroundColor: Theme.bottomModal },
+        ]}
+      >
+        <TouchableOpacity style={defaultStyles.btn}>
+          <Text style={defaultStyles.btnText}>Try 7 days free</Text>
+        </TouchableOpacity>
+        <ThemedText
+          style={[styles.footerText, { color: Theme.descriptionText }]}
+        >
+          2,99 €/month after 7-day trial. Cancel anytime.
+        </ThemedText>
       </View>
     </BottomSheetModal>
   );
@@ -145,6 +186,29 @@ const styles = StyleSheet.create({
   benefitText: {
     fontSize: 14,
     flexShrink: 1,
-    color: "#4f4f4f",
+  },
+  disclaimerText: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginHorizontal: 30,
+    lineHeight: 18,
+    marginBottom: 20,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -4, // Negative value to move the shadow to the top
+    },
+    shadowOpacity: 0.3, // Slightly higher for more prominence
+    shadowRadius: 5, // Wider shadow
+    elevation: 30, // Higher elevation for Android
+  },
+  footerText: {
+    fontSize: 14,
+    textAlign: "center",
+    paddingTop: 10,
   },
 });
