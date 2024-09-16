@@ -1,48 +1,61 @@
 import { format } from "date-fns";
 import { Link } from "expo-router";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
+import { ThemedText } from "../components/ThemedText";
+import { Colors } from "../constants/Colors";
 import { logoImageUri } from "../constants/Images";
 
 export default function Index() {
+  const colorScheme = useColorScheme();
+  const Theme = Colors[colorScheme ?? "light"];
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: Theme.background }]}>
       <View style={styles.header}>
         <Image style={styles.image} source={{ uri: logoImageUri }} />
-        <Text style={styles.title}>Wordle</Text>
-        <Text style={styles.text}>Get 6 changes to guess 5-letter word</Text>
+        <ThemedText style={styles.title}>Wordle</ThemedText>
+        <ThemedText style={styles.text}>
+          Get 6 changes to guess 5-letter word
+        </ThemedText>
       </View>
 
       <View style={styles.menu}>
         <Link
           asChild
           href={"/game"}
-          style={[styles.button, { backgroundColor: "#000" }]}
+          style={[styles.button, { backgroundColor: Theme.playBtn }]}
         >
           <TouchableOpacity>
             <Text style={[styles.buttonText, styles.primaryText]}>Play</Text>
           </TouchableOpacity>
         </Link>
 
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Settings</Text>
+        <TouchableOpacity style={[styles.button, { borderColor: Theme.text }]}>
+          <ThemedText style={styles.buttonText}>Settings</ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Subscribe</Text>
+        <TouchableOpacity style={[styles.button, { borderColor: Theme.text }]}>
+          <ThemedText style={styles.buttonText}>Subscribe</ThemedText>
         </TouchableOpacity>
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerDate}>
+        <ThemedText style={styles.footerDate}>
           {format(new Date(), "MMMM d, yyyy")}
-        </Text>
-        <Text style={styles.footerText}>No. 1151</Text>
-        <Text style={styles.footerText}>Edited by Jair Guzman</Text>
+        </ThemedText>
+        <ThemedText style={styles.footerText}>No. 1151</ThemedText>
+        <ThemedText style={styles.footerText}>Edited by Jair Guzman</ThemedText>
         <Link href={"https://www.youtube.com/@galaxies_dev"} asChild>
           <TouchableOpacity>
-            <Text style={[styles.footerText, styles.credits]}>
+            <ThemedText style={[styles.footerText, styles.credits]}>
               With help of Simon Grimm
-            </Text>
+            </ThemedText>
           </TouchableOpacity>
         </Link>
       </View>
@@ -59,7 +72,7 @@ const styles = StyleSheet.create({
   image: {
     width: 100,
     height: 100,
-    backgroundColor: "#FFFFFFF",
+    backgroundColor: "#FFF",
     borderRadius: 11,
   },
   header: {
@@ -88,7 +101,6 @@ const styles = StyleSheet.create({
     padding: 14,
     fontSize: 15,
     fontWeight: "semibold",
-    color: "#333",
   },
   primaryText: {
     color: "#fff",
