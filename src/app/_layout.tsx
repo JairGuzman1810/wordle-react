@@ -41,6 +41,7 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="game" />
+            <Stack.Screen name="login" />
           </Stack>
         </BottomSheetModalProvider>
       </GestureHandlerRootView>

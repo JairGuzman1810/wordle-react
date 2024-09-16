@@ -15,7 +15,7 @@ import { ThemedText } from "../components/ThemedText";
 import { Colors } from "../constants/Colors";
 import { logoImageUri } from "../constants/Images";
 
-export default function Index() {
+export default function MenuScreen() {
   const colorScheme = useColorScheme();
   const Theme = Colors[colorScheme ?? "light"];
   const subscribeModalRef = useRef<BottomSheetModal>(null);
