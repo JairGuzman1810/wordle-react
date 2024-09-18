@@ -15,6 +15,7 @@ export const Colors = {
     bottomModal: "#fff",
     closeModal: "#9e9e9e",
     descriptionText: "#4f4f4f",
+    textInput: "#ccc",
   },
   dark: {
     text: "#fff",
@@ -25,5 +26,6 @@ export const Colors = {
     bottomModal: "#333",
     closeModal: "#fff",
     descriptionText: "#cbcbcb",
+    textInput: "#333",
   },
 };
