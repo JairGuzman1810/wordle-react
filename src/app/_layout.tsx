@@ -93,6 +93,10 @@ export default function RootLayout() {
                     ),
                   }}
                 />
+                <Stack.Screen
+                  name="oauth-native-callback"
+                  options={{ headerShown: false }}
+                />
               </Stack>
             </BottomSheetModalProvider>
           </GestureHandlerRootView>
