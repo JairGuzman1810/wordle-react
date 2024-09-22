@@ -69,19 +69,18 @@ export default function RootLayout() {
                   options={{
                     headerBackTitle: "Wordle",
                     headerTitle: Platform.OS === "ios" ? "" : "Wordle",
+                    headerTitleAlign: "left", // Alinea el título a la izquierda
+                    headerTitleStyle: {
+                      fontFamily: "FrankRuhlLibre_800ExtraBold",
+                      fontSize: 26,
+                    },
                     headerBackTitleStyle: {
                       fontFamily: "FrankRuhlLibre_800ExtraBold",
                       fontSize: 26,
                     },
-                    headerTitleStyle:
-                      Platform.OS === "ios"
-                        ? undefined
-                        : {
-                            fontFamily: "FrankRuhlLibre_800ExtraBold",
-                            fontSize: 26,
-                          },
                   }}
                 />
+
                 <Stack.Screen
                   name="login"
                   options={{

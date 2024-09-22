@@ -3,12 +3,12 @@ import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   StyleSheet,
-  Text,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
 import Keyboard from "../components/Keyboard";
+import { ThemedText } from "../components/ThemedText";
 import { Colors } from "../constants/Colors";
 
 const ROWS = 6;
@@ -20,7 +20,7 @@ const GameScreen = () => {
   const router = useRouter();
 
   const [rows, setRows] = useState<string[][]>(
-    new Array(ROWS).fill(new Array(COLUMNS).fill(""))
+    new Array(ROWS).fill(new Array(COLUMNS).fill("a"))
   );
   const [curRow, setCurRow] = useState(0);
   const [curCol, setCurCol] = useState(0);
@@ -57,7 +57,17 @@ const GameScreen = () => {
           ),
         }}
       />
-      <Text>game</Text>
+      <View style={styles.gameField}>
+        {rows.map((row, rowIdex) => (
+          <View style={styles.gameFieldRow} key={`row-${rowIdex}`}>
+            {row.map((cell, cellIndex) => (
+              <View style={styles.cell} key={`cell-${rowIdex}-${cellIndex}`}>
+                <ThemedText style={styles.cellText}>{cell}</ThemedText>
+              </View>
+            ))}
+          </View>
+        ))}
+      </View>
       <Keyboard />
     </View>
   );
@@ -73,5 +83,25 @@ const styles = StyleSheet.create({
   headerIcon: {
     gap: 10,
     flexDirection: "row",
+  },
+  gameField: {
+    alignItems: "center",
+    gap: 8,
+  },
+  gameFieldRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  cell: {
+    width: 62,
+    height: 62,
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cellText: {
+    fontSize: 30,
+    fontWeight: "bold",
+    textTransform: "uppercase",
   },
 });
