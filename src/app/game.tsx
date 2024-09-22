@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import Keyboard from "../components/Keyboard";
 import { ThemedText } from "../components/ThemedText";
-import { Colors } from "../constants/Colors";
+import { Colors, GRAY, GREEN, YELLOW } from "../constants/Colors";
+import { words } from "../utils/answerWords";
 import { allWords } from "../utils/guessWords";
 
 const ROWS = 6;
@@ -32,11 +33,13 @@ const GameScreen = () => {
   const [yellowLetters, setYellowLetters] = useState<string[]>([]);
   const [grayLetters, setGrayLetters] = useState<string[]>([]);
 
-  /*const [word, setWord] = useState<string>(
-    words[Math.floor(Math.random() * words.length)]
-  );*/
-  const [word, setWord] = useState<string>("leche");
+  const [word] = useState(words[Math.floor(Math.random() * words.length)]);
   const wordLetters = word.split("");
+
+  // State to track cell colors
+  const [cellColors, setCellColors] = useState<string[][]>(
+    new Array(ROWS).fill(new Array(COLUMNS).fill("transparent"))
+  );
 
   const colStateRef = useRef(curCol);
   const setCurCol = (col: number) => {
@@ -74,50 +77,92 @@ const GameScreen = () => {
     const currentWord = rows[curRow].join("");
 
     if (currentWord.length < word.length) {
-      //TODO: error
       console.log("Not enough letters");
       return;
     }
 
     if (!allWords.includes(currentWord)) {
-      //TODO: error
       console.log("Not a word");
-      //return
+      return;
     }
 
     const newGreen: string[] = [];
     const newYellow: string[] = [];
     const newGray: string[] = [];
+    const newColors = [...cellColors.map((row) => [...row])]; // Copy current colors
 
+    // Frequency map for the target word
+    const targetLetterFreq: { [key: string]: number } = {};
+    wordLetters.forEach((letter) => {
+      targetLetterFreq[letter] = (targetLetterFreq[letter] || 0) + 1;
+    });
+
+    // Frequency map for the guessed word
+    const guessLetterFreq: { [key: string]: number } = {};
+    currentWord.split("").forEach((letter) => {
+      guessLetterFreq[letter] = (guessLetterFreq[letter] || 0) + 1;
+    });
+
+    // First pass for green (correct positions)
     currentWord.split("").forEach((letter, index) => {
       if (letter === wordLetters[index]) {
+        newColors[curRow][index] = GREEN; // Store color for this cell
         newGreen.push(letter);
-      } else if (wordLetters.includes(letter)) {
+        targetLetterFreq[letter]--; // Decrease count for green letters
+        guessLetterFreq[letter]--; // Decrease count for the guessed word letter
+      }
+    });
+
+    // Second pass for yellow and gray (wrong positions)
+    currentWord.split("").forEach((letter, index) => {
+      if (newColors[curRow][index] === GREEN) return; // Skip already marked green
+
+      if (targetLetterFreq[letter] > 0 && guessLetterFreq[letter] > 0) {
+        newColors[curRow][index] = YELLOW; // Store color for this cell
         newYellow.push(letter);
+        targetLetterFreq[letter]--; // Decrease count for yellow letters
+        guessLetterFreq[letter]--; // Decrease count for the guessed word letter
       } else {
+        newColors[curRow][index] = GRAY; // Store color for this cell
         newGray.push(letter);
       }
-
-      setGreenLetters([...greenLetters, ...newGreen]);
-      setYellowLetters([...yellowLetters, ...newYellow]);
-      setGrayLetters([...grayLetters, ...newGray]);
-
-      setTimeout(() => {
-        if (currentWord === word) {
-          console.log("Word found");
-          //TODO SHOW END SCREEN
-        } else if (curRow + 1 >= rows.length) {
-          console.log("Game over");
-          //TODO SHOW END SCREEN
-        }
-      }, 0);
-
-      setCurRow(curRow + 1);
-      setCurCol(0);
     });
+
+    setGreenLetters([...greenLetters, ...newGreen]);
+    setYellowLetters([...yellowLetters, ...newYellow]);
+    setGrayLetters([...grayLetters, ...newGray]);
+
+    // Update the colors for the current row
+    setCellColors(newColors);
+
+    setTimeout(() => {
+      if (currentWord === word) {
+        console.log("Word found");
+        // TODO: show end screen
+      } else if (curRow + 1 >= rows.length) {
+        console.log("Game over");
+        // TODO: show end screen
+      }
+    }, 1500);
+
+    setCurRow(curRow + 1);
+    setCurCol(0);
+  };
+
+  const getCellColor = (rowIndex: number, cellIndex: number) => {
+    // Return the color stored for this cell
+    return cellColors[rowIndex][cellIndex] || "transparent";
   };
 
   const cellSize = Math.min((width - 40) / COLUMNS, height * 0.085);
+
+  const getBorderColor = (rowIndex: number, cellIndex: number) => {
+    if (curRow > rowIndex) {
+      return getCellColor(rowIndex, cellIndex);
+    }
+
+    return Theme.gray;
+  };
 
   return (
     <View style={styles.container}>
@@ -143,8 +188,8 @@ const GameScreen = () => {
         }}
       />
       <View style={styles.gameField}>
-        {rows.map((row, rowIdex) => (
-          <View style={styles.gameFieldRow} key={`row-${rowIdex}`}>
+        {rows.map((row, rowIndex) => (
+          <View style={styles.gameFieldRow} key={`row-${rowIndex}`}>
             {row.map((cell, cellIndex) => (
               <View
                 style={[
@@ -152,12 +197,22 @@ const GameScreen = () => {
                   {
                     width: cellSize,
                     height: cellSize,
-                    borderColor: Theme.text,
+                  },
+                  {
+                    backgroundColor: getCellColor(rowIndex, cellIndex),
+                    borderColor: getBorderColor(rowIndex, cellIndex),
                   },
                 ]}
-                key={`cell-${rowIdex}-${cellIndex}`}
+                key={`cell-${rowIndex}-${cellIndex}`}
               >
-                <ThemedText style={styles.cellText}>{cell}</ThemedText>
+                <ThemedText
+                  style={[
+                    styles.cellText,
+                    { color: curRow > rowIndex ? "#fff" : Theme.text },
+                  ]}
+                >
+                  {cell}
+                </ThemedText>
               </View>
             ))}
           </View>
@@ -196,6 +251,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 10,
   },
   cellText: {
     fontSize: 30,

@@ -23,7 +23,7 @@ export const Colors = {
     text: "#fff",
     background: "#000",
     gameBg: "#000",
-    gray: "#2C2C2E",
+    gray: "#9e9e9e",
     playBtn: "#4A4A4A",
     bottomModal: "#333",
     closeModal: "#fff",
