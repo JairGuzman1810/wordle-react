@@ -16,7 +16,12 @@ import { tokenCache } from "@utils/cache";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
-import { Image, TouchableOpacity, useColorScheme } from "react-native";
+import {
+  Image,
+  Platform,
+  TouchableOpacity,
+  useColorScheme,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Colors } from "../constants/Colors";
 import { nytLogoImageDarkUri, nytLogoImageUri } from "../constants/Images";
@@ -59,7 +64,24 @@ export default function RootLayout() {
             <BottomSheetModalProvider>
               <Stack>
                 <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="game" />
+                <Stack.Screen
+                  name="game"
+                  options={{
+                    headerBackTitle: "Wordle",
+                    headerTitle: Platform.OS === "ios" ? "" : "Wordle",
+                    headerBackTitleStyle: {
+                      fontFamily: "FrankRuhlLibre_800ExtraBold",
+                      fontSize: 26,
+                    },
+                    headerTitleStyle:
+                      Platform.OS === "ios"
+                        ? undefined
+                        : {
+                            fontFamily: "FrankRuhlLibre_800ExtraBold",
+                            fontSize: 26,
+                          },
+                  }}
+                />
                 <Stack.Screen
                   name="login"
                   options={{
