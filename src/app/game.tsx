@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from "react-native";
 import Keyboard from "../components/Keyboard";
@@ -15,6 +16,7 @@ const ROWS = 6;
 const COLUMNS = 5;
 
 const GameScreen = () => {
+  const { width, height } = useWindowDimensions(); // Obtén las dimensiones de la pantalla
   const colorScheme = useColorScheme();
   const Theme = Colors[colorScheme ?? "light"];
   const router = useRouter();
@@ -25,14 +27,15 @@ const GameScreen = () => {
   const [curRow, setCurRow] = useState(0);
   const [curCol, setCurCol] = useState(0);
 
-  const [greenLetters, setGreenLetters] = useState<string[]>([]);
+  const [greenLetters, setGreenLetters] = useState<string[]>(["a"]);
   const [yellowLetters, setYellowLetters] = useState<string[]>([]);
-  const [grayLetters, setGrayetters] = useState<string[]>([]);
+  const [grayLetters, setGrayetters] = useState<string[]>(["c"]);
 
   const addKey = (key: string) => {
     console.log("addKey", key);
-    //TODO
   };
+
+  const cellSize = Math.min((width - 40) / COLUMNS, height * 0.085);
 
   return (
     <View style={styles.container}>
@@ -61,14 +64,29 @@ const GameScreen = () => {
         {rows.map((row, rowIdex) => (
           <View style={styles.gameFieldRow} key={`row-${rowIdex}`}>
             {row.map((cell, cellIndex) => (
-              <View style={styles.cell} key={`cell-${rowIdex}-${cellIndex}`}>
+              <View
+                style={[
+                  styles.cell,
+                  {
+                    width: cellSize,
+                    height: cellSize,
+                    borderColor: Theme.text,
+                  },
+                ]}
+                key={`cell-${rowIdex}-${cellIndex}`}
+              >
                 <ThemedText style={styles.cellText}>{cell}</ThemedText>
               </View>
             ))}
           </View>
         ))}
       </View>
-      <Keyboard />
+      <Keyboard
+        onKeyPressed={addKey}
+        greenLetters={greenLetters}
+        yellowLetters={yellowLetters}
+        grayLetters={grayLetters}
+      />
     </View>
   );
 };
@@ -93,8 +111,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cell: {
-    width: 62,
-    height: 62,
     borderWidth: 2,
     justifyContent: "center",
     alignItems: "center",

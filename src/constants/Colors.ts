@@ -1,5 +1,6 @@
 export const GREEN = "#60AB55";
 export const YELLOW = "#BCAD4C";
+export const GRAY = "#9e9e9e";
 export const DARK = "#787c7e";
 
 export const Colors = {
@@ -16,6 +17,7 @@ export const Colors = {
     closeModal: "#9e9e9e",
     descriptionText: "#4f4f4f",
     textInput: "#ccc",
+    key: "#ddd",
   },
   dark: {
     text: "#fff",
@@ -27,5 +29,6 @@ export const Colors = {
     closeModal: "#fff",
     descriptionText: "#cbcbcb",
     textInput: "#333",
+    key: "#333",
   },
 };
