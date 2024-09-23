@@ -80,7 +80,6 @@ export default function RootLayout() {
                     },
                   }}
                 />
-
                 <Stack.Screen
                   name="login"
                   options={{
@@ -117,6 +116,14 @@ export default function RootLayout() {
                 <Stack.Screen
                   name="oauth-native-callback"
                   options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="end"
+                  options={{
+                    title: "",
+                    presentation: "fullScreenModal",
+                    headerShadowVisible: false,
+                  }}
                 />
               </Stack>
             </BottomSheetModalProvider>

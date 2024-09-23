@@ -1,6 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Stack, useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -11,70 +11,98 @@ import {
 import Keyboard from "../components/Keyboard";
 import { ThemedText } from "../components/ThemedText";
 import { Colors, GRAY, GREEN, YELLOW } from "../constants/Colors";
-import { words } from "../utils/answerWords";
 import { allWords } from "../utils/guessWords";
 
-const ROWS = 6;
-const COLUMNS = 5;
+const ROWS = 6; // Number of rows in the game (attempts)
+const COLUMNS = 5; // Number of columns (letters in the word)
 
 const GameScreen = () => {
-  const { width, height } = useWindowDimensions(); // Obtén las dimensiones de la pantalla
-  const colorScheme = useColorScheme();
-  const Theme = Colors[colorScheme ?? "light"];
-  const router = useRouter();
+  const { width, height } = useWindowDimensions(); // Get screen dimensions for responsive design
+  const colorScheme = useColorScheme(); // Detect if light or dark mode is active
+  const Theme = Colors[colorScheme ?? "light"]; // Set colors based on the current theme
+  const router = useRouter(); // Used to navigate between screens
 
+  // State to track the letters in each row (player's guesses)
   const [rows, setRows] = useState<string[][]>(
-    new Array(ROWS).fill(new Array(COLUMNS).fill(""))
+    new Array(ROWS).fill("").map(() => new Array(COLUMNS).fill("")) // Create a 2D array for the grid, initially empty
   );
-  const [curRow, setCurRow] = useState(0);
-  const [curCol, _setCurCol] = useState(0);
+  const [curRow, setCurRow] = useState(0); // Track the current row (which attempt the player is on)
+  const [curCol, setCurCol] = useState(0); // Track the current column (which letter is being typed)
 
+  // Track which letters have been guessed correctly (green), misplaced (yellow), or not in the word (gray)
   const [greenLetters, setGreenLetters] = useState<string[]>([]);
   const [yellowLetters, setYellowLetters] = useState<string[]>([]);
   const [grayLetters, setGrayLetters] = useState<string[]>([]);
 
-  const [word] = useState(words[Math.floor(Math.random() * words.length)]);
-  const wordLetters = word.split("");
+  // Randomly select the target word from the list of possible words
+  const [word] = useState("banal");
+  const wordLetters = word.split(""); // Convert the target word into an array of individual letters
 
-  // State to track cell colors
+  // State to track the background color of each cell (green, yellow, gray, or transparent)
   const [cellColors, setCellColors] = useState<string[][]>(
-    new Array(ROWS).fill(new Array(COLUMNS).fill("transparent"))
+    new Array(ROWS).fill("").map(() => new Array(COLUMNS).fill("transparent"))
   );
 
-  const colStateRef = useRef(curCol);
-  const setCurCol = (col: number) => {
-    colStateRef.current = col;
-    _setCurCol(col);
+  // Track the result of the game (win or lose), initially null
+  const [gameResult, setGameResult] = useState<null | { win: boolean }>(null);
+
+  // When the gameResult is updated (player wins or loses), navigate to the "end" screen
+  useEffect(() => {
+    if (gameResult) {
+      const emojiGrid = convertToEmojiGrid(cellColors, curRow); // Convert the color grid into emojis for the final screen
+      const gameField = JSON.stringify(emojiGrid); // Serialize the emoji grid into a string for the URL
+      const encodedWord = encodeURIComponent(word); // Encode the word for safe URL usage
+
+      // Navigate to the "end" screen, passing the win/lose state, word, and gameField as URL parameters
+      router.replace(
+        `/end?win=${gameResult.win}&word=${encodedWord}&gameField=${gameField}`
+      );
+    }
+  }, [gameResult, cellColors, router, word, curRow]); // Including all necessary dependencies
+
+  // Helper function to convert the color grid into a string of emoji representations
+  const convertToEmojiGrid = (
+    cellColors: string[][],
+    curRow: number
+  ): string[] => {
+    const emojiMap: { [key: string]: string } = {
+      [GRAY]: "⬛", // Gray emoji
+      [YELLOW]: "🟨", // Yellow emoji
+      [GREEN]: "🟩", // Green emoji
+    };
+
+    // Map over the cellColors and convert only rows up to curRow (inclusive)
+    return cellColors
+      .slice(0, curRow)
+      .map((row) => row.map((color) => emojiMap[color] || "⬛").join(""));
   };
 
+  // Function to handle keyboard input
   const addKey = (key: string) => {
-    console.log("addKey", key);
-    const newRows = [...rows.map((row) => [...row])];
+    const newRows = rows.map((row) => [...row]); // Create a copy of the current rows
 
     if (key === "ENTER") {
-      checkWord();
-    } else if (key === "BACKSPACE") {
-      if (colStateRef.current === 0) {
-        newRows[curRow][0] = "";
-        setRows(newRows);
-        return;
+      if (curCol === COLUMNS) {
+        checkWord(); // If the player pressed "ENTER" and the row is complete, check the word
       }
-
-      newRows[curRow][colStateRef.current - 1] = "";
-      setCurCol(colStateRef.current - 1);
+    } else if (key === "BACKSPACE") {
+      if (curCol > 0) {
+        // Remove the last typed letter if backspace is pressed
+        newRows[curRow][curCol - 1] = "";
+        setRows(newRows);
+        setCurCol(curCol - 1);
+      }
+    } else if (curCol < COLUMNS) {
+      // Add the typed letter to the current column
+      newRows[curRow][curCol] = key;
       setRows(newRows);
-    } else if (colStateRef.current >= newRows[curRow].length) {
-      //EoL, dont add key
-      return;
-    } else {
-      newRows[curRow][colStateRef.current] = key;
-      setRows(newRows);
-      setCurCol(colStateRef.current + 1);
+      setCurCol(curCol + 1);
     }
   };
 
+  // Function to check if the word entered is correct, and update the colors accordingly
   const checkWord = () => {
-    const currentWord = rows[curRow].join("");
+    const currentWord = rows[curRow].join(""); // Get the word formed in the current row
 
     if (currentWord.length < word.length) {
       console.log("Not enough letters");
@@ -82,86 +110,75 @@ const GameScreen = () => {
     }
 
     if (!allWords.includes(currentWord)) {
-      console.log("Not a word");
+      console.log("Not a word"); // Check if the entered word is valid
       return;
     }
 
-    const newGreen: string[] = [];
-    const newYellow: string[] = [];
-    const newGray: string[] = [];
+    const newGreenLetters: string[] = [];
+    const newYellowLetters: string[] = [];
+    const newGrayLetters: string[] = [];
     const newColors = [...cellColors.map((row) => [...row])]; // Copy current colors
 
     // Frequency map for the target word
     const targetLetterFreq: { [key: string]: number } = {};
+
     wordLetters.forEach((letter) => {
-      targetLetterFreq[letter] = (targetLetterFreq[letter] || 0) + 1;
+      targetLetterFreq[letter] = (targetLetterFreq[letter] || 0) + 1; // Count the occurrences of each letter in the target word
     });
 
-    // Frequency map for the guessed word
-    const guessLetterFreq: { [key: string]: number } = {};
-    currentWord.split("").forEach((letter) => {
-      guessLetterFreq[letter] = (guessLetterFreq[letter] || 0) + 1;
-    });
-
-    // First pass for green (correct positions)
-    currentWord.split("").forEach((letter, index) => {
+    // First pass: Mark all letters that are correct and in the correct position (green)
+    rows[curRow].forEach((letter, index) => {
       if (letter === wordLetters[index]) {
-        newColors[curRow][index] = GREEN; // Store color for this cell
-        newGreen.push(letter);
-        targetLetterFreq[letter]--; // Decrease count for green letters
-        guessLetterFreq[letter]--; // Decrease count for the guessed word letter
+        newColors[curRow][index] = GREEN; // Set cell color to green
+        newGreenLetters.push(letter); // Add letter to green letters
+        targetLetterFreq[letter]--; // Decrement frequency of that letter in the target word
       }
     });
 
-    // Second pass for yellow and gray (wrong positions)
-    currentWord.split("").forEach((letter, index) => {
-      if (newColors[curRow][index] === GREEN) return; // Skip already marked green
+    // Second pass: Mark yellow (correct letters in wrong positions) and gray (incorrect letters)
+    rows[curRow].forEach((letter, index) => {
+      if (newColors[curRow][index] === GREEN) return; // Skip already marked green letters
 
-      if (targetLetterFreq[letter] > 0 && guessLetterFreq[letter] > 0) {
-        newColors[curRow][index] = YELLOW; // Store color for this cell
-        newYellow.push(letter);
-        targetLetterFreq[letter]--; // Decrease count for yellow letters
-        guessLetterFreq[letter]--; // Decrease count for the guessed word letter
+      if (targetLetterFreq[letter]) {
+        newColors[curRow][index] = YELLOW; // Set cell color to yellow
+        newYellowLetters.push(letter); // Add letter to yellow letters
+        targetLetterFreq[letter]--; // Decrement frequency of that letter
       } else {
-        newColors[curRow][index] = GRAY; // Store color for this cell
-        newGray.push(letter);
+        newColors[curRow][index] = GRAY; // Set cell color to gray (letter not in the word)
+        newGrayLetters.push(letter);
       }
     });
 
-    setGreenLetters([...greenLetters, ...newGreen]);
-    setYellowLetters([...yellowLetters, ...newYellow]);
-    setGrayLetters([...grayLetters, ...newGray]);
-
-    // Update the colors for the current row
+    // Update the state with the new colors and guessed letters
     setCellColors(newColors);
+    setGreenLetters([...greenLetters, ...newGreenLetters]);
+    setYellowLetters([...yellowLetters, ...newYellowLetters]);
+    setGrayLetters([...grayLetters, ...newGrayLetters]);
 
-    setTimeout(() => {
-      if (currentWord === word) {
-        console.log("Word found");
-        // TODO: show end screen
-      } else if (curRow + 1 >= rows.length) {
-        console.log("Game over");
-        // TODO: show end screen
-      }
-    }, 1500);
-
-    setCurRow(curRow + 1);
-    setCurCol(0);
-  };
-
-  const getCellColor = (rowIndex: number, cellIndex: number) => {
-    // Return the color stored for this cell
-    return cellColors[rowIndex][cellIndex] || "transparent";
-  };
-
-  const cellSize = Math.min((width - 40) / COLUMNS, height * 0.085);
-
-  const getBorderColor = (rowIndex: number, cellIndex: number) => {
-    if (curRow > rowIndex) {
-      return getCellColor(rowIndex, cellIndex);
+    if (currentWord === word) {
+      setTimeout(() => setGameResult({ win: true }), 1500); // If the player wins, set the result to "win" after a delay
+    } else if (curRow + 1 === ROWS) {
+      setTimeout(() => setGameResult({ win: false }), 1500); // If it's the last row and the word is wrong, set the result to "lose"
     }
 
-    return Theme.gray;
+    setCurRow(curRow + 1); // Move to the next row (next attempt)
+    setCurCol(0); // Reset column to the beginning
+  };
+
+  // Function to get the background color of a cell based on its position
+  const getCellColor = (rowIndex: number, cellIndex: number) => {
+    return cellColors[rowIndex][cellIndex] || "transparent"; // Return the cell color or transparent if not colored yet
+  };
+
+  // Calculate cell size based on screen width and height
+  const cellSize = Math.min((width - 40) / COLUMNS, height * 0.085);
+
+  // Function to get the border color of a cell
+  const getBorderColor = (rowIndex: number, cellIndex: number) => {
+    if (curRow > rowIndex) {
+      return getCellColor(rowIndex, cellIndex); // If the row is completed, use the cell color
+    }
+    return Theme.gray; // Otherwise, use gray as the border color
   };
 
   return (
