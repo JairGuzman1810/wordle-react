@@ -1,4 +1,4 @@
-import { SignedIn, SignedOut } from "@clerk/clerk-expo";
+import { SignedIn, SignedOut, useUser } from "@clerk/clerk-expo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Link, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -24,14 +24,16 @@ const EndScreen = () => {
     word: string;
     gameField?: string;
   }>();
-
   const router = useRouter(); // Used to navigate between screens
-
   const [userScore, setUserScore] = useState<any>({
     played: 42,
     wins: 2,
     currentStreak: 1,
   });
+
+  const { user } = useUser();
+
+  const updateHighScore = () => {};
 
   const navigateRoot = () => {
     router.dismissAll();
@@ -86,6 +88,11 @@ const EndScreen = () => {
         <ThemedText style={styles.title}>
           {win === "true" ? "Congratulations" : "Thanks for playing today!"}
         </ThemedText>
+        {win !== "true" && (
+          <ThemedText style={styles.guessedWord}>
+            The word was: {word}
+          </ThemedText>
+        )}
         <SignedOut>
           <ThemedText style={styles.text}>
             Want to see your stats and streaks?
@@ -139,7 +146,7 @@ const EndScreen = () => {
         />
 
         <TouchableOpacity style={styles.iconBtn} onPress={shareGame}>
-          <ThemedText>Share</ThemedText>
+          <ThemedText style={styles.iconText}>Share</ThemedText>
           <Ionicons name="share-social" size={24} color={"#fff"} />
         </TouchableOpacity>
       </View>
@@ -188,6 +195,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "FrankRuhlLibre_500Medium",
   },
+  guessedWord: {
+    fontSize: 20,
+    textAlign: "center",
+    marginTop: 10,
+    fontFamily: "FrankRuhlLibre_500Medium",
+  },
   btn: {
     justifyContent: "center",
     borderRadius: 30,
@@ -227,5 +240,11 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: "70%",
     paddingVertical: 10,
+  },
+  iconText: {
+    fontSize: 15,
+    fontWeight: "semibold",
+    color: "#fff",
+    marginHorizontal: 10,
   },
 });

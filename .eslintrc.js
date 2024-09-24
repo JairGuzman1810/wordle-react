@@ -14,4 +14,7 @@ module.exports = {
     "react-hooks/exhaustive-deps": "warn", // Checks effect dependencies
     "react-native/no-unused-styles": "warn", // Warn for unused styles
   },
+  globals: {
+    __dirname: true,
+  },
 };
