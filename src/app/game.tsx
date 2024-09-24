@@ -1,6 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Stack, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -9,12 +10,13 @@ import {
   View,
 } from "react-native";
 import Keyboard from "../components/Keyboard";
+import SettingsModal from "../components/SettingsModal";
 import { ThemedText } from "../components/ThemedText";
 import { Colors, GRAY, GREEN, YELLOW } from "../constants/Colors";
 import { words } from "../utils/answerWords";
 import { allWords } from "../utils/guessWords";
 
-const ROWS = 6; // Number of rows in the game (attempts)
+const ROWS = 1; // Number of rows in the game (attempts)
 const COLUMNS = 5; // Number of columns (letters in the word)
 
 const GameScreen = () => {
@@ -35,6 +37,8 @@ const GameScreen = () => {
   const [yellowLetters, setYellowLetters] = useState<string[]>([]);
   const [grayLetters, setGrayLetters] = useState<string[]>([]);
 
+  const settingsModalRef = useRef<BottomSheetModal>(null);
+  const handleShowSettingsModal = () => settingsModalRef.current?.present();
   // Randomly select the target word from the list of possible words
   const [word] = useState(words[Math.floor(Math.random() * words.length)]);
   const wordLetters = word.split(""); // Convert the target word into an array of individual letters
@@ -198,7 +202,7 @@ const GameScreen = () => {
               <TouchableOpacity>
                 <Ionicons name="podium-outline" size={28} color={Theme.text} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleShowSettingsModal}>
                 <Ionicons name="settings-sharp" size={28} color={Theme.text} />
               </TouchableOpacity>
             </View>
@@ -242,6 +246,7 @@ const GameScreen = () => {
         yellowLetters={yellowLetters}
         grayLetters={grayLetters}
       />
+      <SettingsModal bottomSheetRef={settingsModalRef} />
     </View>
   );
 };
