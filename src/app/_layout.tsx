@@ -17,14 +17,17 @@ import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import {
+  Appearance,
   Image,
   Platform,
   TouchableOpacity,
   useColorScheme,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useMMKVBoolean } from "react-native-mmkv";
 import { Colors } from "../constants/Colors";
 import { nytLogoImageDarkUri, nytLogoImageUri } from "../constants/Images";
+import { storage } from "../utils/storage";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -39,6 +42,8 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const Theme = Colors[colorScheme ?? "light"];
+  const [dark] = useMMKVBoolean("dark-mode", storage);
+
   const [loaded, error] = useFonts({
     FrankRuhlLibre_800ExtraBold,
     FrankRuhlLibre_500Medium,
@@ -50,6 +55,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded, error]);
+
+  useEffect(() => {
+    Appearance.setColorScheme(dark ? "dark" : "light");
+  }, [dark]);
 
   if (!loaded && !error) {
     return null;

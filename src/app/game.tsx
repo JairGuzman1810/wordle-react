@@ -9,14 +9,16 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { useMMKVBoolean } from "react-native-mmkv";
 import Keyboard from "../components/Keyboard";
 import SettingsModal from "../components/SettingsModal";
 import { ThemedText } from "../components/ThemedText";
 import { Colors, GRAY, GREEN, YELLOW } from "../constants/Colors";
-import { words } from "../utils/answerWords";
-import { allWords } from "../utils/guessWords";
+import { words, wordsSPA } from "../utils/answerWords";
+import { allWords, allWordsSPA } from "../utils/guessWords";
+import { storage } from "../utils/storage";
 
-const ROWS = 1; // Number of rows in the game (attempts)
+const ROWS = 6; // Number of rows in the game (attempts)
 const COLUMNS = 5; // Number of columns (letters in the word)
 
 const GameScreen = () => {
@@ -32,6 +34,9 @@ const GameScreen = () => {
   const [curRow, setCurRow] = useState(0); // Track the current row (which attempt the player is on)
   const [curCol, setCurCol] = useState(0); // Track the current column (which letter is being typed)
 
+  // Get the state for Spanish mode
+  const [isSpanish] = useMMKVBoolean("spanish-mode", storage);
+
   // Track which letters have been guessed correctly (green), misplaced (yellow), or not in the word (gray)
   const [greenLetters, setGreenLetters] = useState<string[]>([]);
   const [yellowLetters, setYellowLetters] = useState<string[]>([]);
@@ -40,7 +45,12 @@ const GameScreen = () => {
   const settingsModalRef = useRef<BottomSheetModal>(null);
   const handleShowSettingsModal = () => settingsModalRef.current?.present();
   // Randomly select the target word from the list of possible words
-  const [word] = useState(words[Math.floor(Math.random() * words.length)]);
+  const [word, setWord] = useState(
+    (isSpanish ? wordsSPA : words)[
+      Math.floor(Math.random() * (isSpanish ? wordsSPA.length : words.length))
+    ]
+  );
+
   const wordLetters = word.split(""); // Convert the target word into an array of individual letters
 
   // State to track the background color of each cell (green, yellow, gray, or transparent)
@@ -64,6 +74,25 @@ const GameScreen = () => {
       );
     }
   }, [gameResult, cellColors, router, word, curRow]); // Including all necessary dependencies
+
+  useEffect(() => {
+    // Reset the game state
+    setRows(new Array(ROWS).fill("").map(() => new Array(COLUMNS).fill("")));
+    setCurRow(0);
+    setCurCol(0);
+    setGreenLetters([]);
+    setYellowLetters([]);
+    setGrayLetters([]);
+    setCellColors(
+      new Array(ROWS).fill("").map(() => new Array(COLUMNS).fill("transparent"))
+    );
+
+    // Select a new word based on the language
+    const newWord = (isSpanish ? wordsSPA : words)[
+      Math.floor(Math.random() * (isSpanish ? wordsSPA : words).length)
+    ];
+    setWord(newWord);
+  }, [isSpanish]);
 
   // Helper function to convert the color grid into a string of emoji representations
   const convertToEmojiGrid = (
@@ -114,7 +143,10 @@ const GameScreen = () => {
       return;
     }
 
-    if (!allWords.includes(currentWord)) {
+    // Use the appropriate word list based on the Spanish mode
+    const validWords = isSpanish ? allWordsSPA : allWords;
+
+    if (!validWords.includes(currentWord)) {
       console.log("Not a word"); // Check if the entered word is valid
       return;
     }

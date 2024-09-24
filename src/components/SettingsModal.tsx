@@ -32,10 +32,12 @@ const SettingsModal = ({ bottomSheetRef }: SettingsModalProps) => {
   const [hard, setHard] = useMMKVBoolean("hard-mode", storage);
   const [dark, setDark] = useMMKVBoolean("dark-mode", storage);
   const [contrast, setContrast] = useMMKVBoolean("contrast-mode", storage);
+  const [spanish, setSpanish] = useMMKVBoolean("spanish-mode", storage);
 
   const toggleHard = () => setHard(!hard);
   const toggleDark = () => setDark(!dark);
   const toggleContrast = () => setContrast(!contrast);
+  const toggleSpanish = () => setSpanish(!spanish); // Toggle function for Spanish mode
 
   // Get current color scheme (dark or light)
   const colorScheme = useColorScheme();
@@ -79,9 +81,10 @@ const SettingsModal = ({ bottomSheetRef }: SettingsModalProps) => {
             <Ionicons name="close" size={28} color={Theme.closeModal} />
           </TouchableOpacity>
         </View>
+
+        {/* Hard Mode Switch */}
         <View style={styles.row}>
           <View style={styles.rowText}>
-            {/* NOT IMPLEMENTED */}
             <ThemedText style={styles.rowTexBig}>Hard Mode</ThemedText>
             <ThemedText
               style={[styles.rowTexSmall, { color: Theme.descriptionText }]}
@@ -97,6 +100,8 @@ const SettingsModal = ({ bottomSheetRef }: SettingsModalProps) => {
             ios_backgroundColor={Theme.gray}
           />
         </View>
+
+        {/* Dark Mode Switch */}
         <View style={styles.row}>
           <View style={styles.rowText}>
             <ThemedText style={styles.rowTexBig}>Dark Mode</ThemedText>
@@ -114,9 +119,10 @@ const SettingsModal = ({ bottomSheetRef }: SettingsModalProps) => {
             ios_backgroundColor={Theme.gray}
           />
         </View>
+
+        {/* High Contrast Mode Switch */}
         <View style={styles.row}>
           <View style={styles.rowText}>
-            {/* NOT IMPLEMENTED */}
             <ThemedText style={styles.rowTexBig}>High Contrast Mode</ThemedText>
             <ThemedText
               style={[styles.rowTexSmall, { color: Theme.descriptionText }]}
@@ -127,6 +133,25 @@ const SettingsModal = ({ bottomSheetRef }: SettingsModalProps) => {
           <Switch
             onValueChange={toggleContrast}
             value={contrast}
+            trackColor={{ true: Theme.text, false: Theme.gray }}
+            thumbColor={Theme.background}
+            ios_backgroundColor={Theme.gray}
+          />
+        </View>
+
+        {/* Spanish Mode Switch */}
+        <View style={styles.row}>
+          <View style={styles.rowText}>
+            <ThemedText style={styles.rowTexBig}>Spanish Mode</ThemedText>
+            <ThemedText
+              style={[styles.rowTexSmall, { color: Theme.descriptionText }]}
+            >
+              Switch to Spanish word list (restarts the game).
+            </ThemedText>
+          </View>
+          <Switch
+            onValueChange={toggleSpanish}
+            value={spanish}
             trackColor={{ true: Theme.text, false: Theme.gray }}
             thumbColor={Theme.background}
             ios_backgroundColor={Theme.gray}
