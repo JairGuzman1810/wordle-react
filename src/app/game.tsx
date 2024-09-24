@@ -13,7 +13,7 @@ import { ThemedText } from "../components/ThemedText";
 import { Colors, GRAY, GREEN, YELLOW } from "../constants/Colors";
 import { allWords } from "../utils/guessWords";
 
-const ROWS = 6; // Number of rows in the game (attempts)
+const ROWS = 1; // Number of rows in the game (attempts)
 const COLUMNS = 5; // Number of columns (letters in the word)
 
 const GameScreen = () => {

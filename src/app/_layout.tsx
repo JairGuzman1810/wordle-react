@@ -123,6 +123,7 @@ export default function RootLayout() {
                     title: "",
                     presentation: "fullScreenModal",
                     headerShadowVisible: false,
+                    headerBackVisible: false,
                   }}
                 />
               </Stack>
