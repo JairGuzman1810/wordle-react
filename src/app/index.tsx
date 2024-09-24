@@ -15,6 +15,14 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import Animated, {
+  FadeInDown,
+  FadeInLeft,
+  FadeInRight,
+} from "react-native-reanimated";
+
+const AnimatedTouchableOpacity =
+  Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function MenuScreen() {
   const colorScheme = useColorScheme();
@@ -28,13 +36,13 @@ export default function MenuScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: Theme.background }]}>
-      <View style={styles.header}>
+      <Animated.View style={styles.header} entering={FadeInDown}>
         <Image style={styles.image} source={{ uri: logoImageUri }} />
         <ThemedText style={styles.title}>Wordle</ThemedText>
         <ThemedText style={styles.text}>
           Get 6 changes to guess 5-letter word
         </ThemedText>
-      </View>
+      </Animated.View>
 
       <View style={styles.menu}>
         <Link
@@ -42,9 +50,9 @@ export default function MenuScreen() {
           href={"/game"}
           style={[styles.button, { backgroundColor: Theme.playBtn }]}
         >
-          <TouchableOpacity>
+          <AnimatedTouchableOpacity entering={FadeInLeft}>
             <Text style={[styles.buttonText, styles.primaryText]}>Play</Text>
-          </TouchableOpacity>
+          </AnimatedTouchableOpacity>
         </Link>
         <SignedOut>
           <Link
@@ -52,43 +60,45 @@ export default function MenuScreen() {
             href={"/login"}
             style={[styles.button, { borderColor: Theme.text }]}
           >
-            <TouchableOpacity>
+            <AnimatedTouchableOpacity entering={FadeInRight.delay(200)}>
               <ThemedText style={styles.buttonText}>Log in</ThemedText>
-            </TouchableOpacity>
+            </AnimatedTouchableOpacity>
           </Link>
         </SignedOut>
 
         <SignedIn>
-          <TouchableOpacity
+          <AnimatedTouchableOpacity
+            entering={FadeInRight.delay(200)}
             style={[styles.button, { borderColor: Theme.text }]}
             onPress={() => signOut()}
           >
             <ThemedText style={styles.buttonText}>Sign out</ThemedText>
-          </TouchableOpacity>
+          </AnimatedTouchableOpacity>
         </SignedIn>
 
-        <TouchableOpacity
+        <AnimatedTouchableOpacity
+          entering={FadeInLeft.delay(400)}
           style={[styles.button, { borderColor: Theme.text }]}
           onPress={handlePresentModal}
         >
           <ThemedText style={styles.buttonText}>Subscribe</ThemedText>
-        </TouchableOpacity>
+        </AnimatedTouchableOpacity>
       </View>
 
-      <View style={styles.footer}>
+      <Animated.View entering={FadeInDown.delay(600)} style={styles.footer}>
         <ThemedText style={styles.footerDate}>
           {format(new Date(), "MMMM d, yyyy")}
         </ThemedText>
         <ThemedText style={styles.footerText}>No. 1151</ThemedText>
         <ThemedText style={styles.footerText}>Edited by Jair Guzman</ThemedText>
         <Link href={"https://www.youtube.com/@galaxies_dev"} asChild>
-          <TouchableOpacity>
+          <AnimatedTouchableOpacity>
             <ThemedText style={[styles.footerText, styles.credits]}>
               With help of Simon Grimm
             </ThemedText>
-          </TouchableOpacity>
+          </AnimatedTouchableOpacity>
         </Link>
-      </View>
+      </Animated.View>
 
       <SubscribeModal bottomSheetRef={subscribeModalRef} />
     </View>

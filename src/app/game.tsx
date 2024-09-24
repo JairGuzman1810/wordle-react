@@ -210,11 +210,17 @@ const GameScreen = () => {
   // Calculate cell size based on screen width and height
   const cellSize = Math.min((width - 40) / COLUMNS, height * 0.085);
 
-  // Function to get the border color of a cell
   const getBorderColor = (rowIndex: number, cellIndex: number) => {
+    // Check if the current row is greater than the row index (previous rows)
     if (curRow > rowIndex) {
       return getCellColor(rowIndex, cellIndex); // If the row is completed, use the cell color
     }
+
+    // Check if the cell contains a letter and is not in the current row
+    if (rows[rowIndex][cellIndex] !== "") {
+      return Theme.text; // If the cell is not empty and not the current row, use Theme.descriptionText for the border color
+    }
+
     return Theme.gray; // Otherwise, use gray as the border color
   };
 
