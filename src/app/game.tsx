@@ -11,9 +11,10 @@ import {
 import Keyboard from "../components/Keyboard";
 import { ThemedText } from "../components/ThemedText";
 import { Colors, GRAY, GREEN, YELLOW } from "../constants/Colors";
+import { words } from "../utils/answerWords";
 import { allWords } from "../utils/guessWords";
 
-const ROWS = 1; // Number of rows in the game (attempts)
+const ROWS = 6; // Number of rows in the game (attempts)
 const COLUMNS = 5; // Number of columns (letters in the word)
 
 const GameScreen = () => {
@@ -35,7 +36,7 @@ const GameScreen = () => {
   const [grayLetters, setGrayLetters] = useState<string[]>([]);
 
   // Randomly select the target word from the list of possible words
-  const [word] = useState("banal");
+  const [word] = useState(words[Math.floor(Math.random() * words.length)]);
   const wordLetters = word.split(""); // Convert the target word into an array of individual letters
 
   // State to track the background color of each cell (green, yellow, gray, or transparent)
@@ -66,7 +67,7 @@ const GameScreen = () => {
     curRow: number
   ): string[] => {
     const emojiMap: { [key: string]: string } = {
-      [GRAY]: "⬛", // Gray emoji
+      [GRAY]: "⬜", // Gray emoji
       [YELLOW]: "🟨", // Yellow emoji
       [GREEN]: "🟩", // Green emoji
     };
