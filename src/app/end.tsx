@@ -1,8 +1,10 @@
 import { SignedIn, SignedOut, useUser } from "@clerk/clerk-expo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Link, Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Share,
   StyleSheet,
@@ -14,10 +16,19 @@ import {
 import { ThemedText } from "../components/ThemedText";
 import { Colors } from "../constants/Colors";
 import { logoImageUri } from "../constants/Images";
+import { FIRESTORE_DB } from "../utils/firebaseConfig";
+
+// Define the explicit type for userScore
+type UserScore = {
+  played: number;
+  wins: number;
+  lastGame: "win" | "loss";
+  currentStreak: number;
+};
 
 const EndScreen = () => {
   const colorScheme = useColorScheme(); // Detect if light or dark mode is active
-
+  const [isLoading, setIsLoading] = useState(true);
   const Theme = Colors[colorScheme ?? "light"]; // Set colors based on the current theme
   const { win, word, gameField } = useLocalSearchParams<{
     win: string;
@@ -25,15 +36,59 @@ const EndScreen = () => {
     gameField?: string;
   }>();
   const router = useRouter(); // Used to navigate between screens
-  const [userScore, setUserScore] = useState<any>({
-    played: 42,
-    wins: 2,
-    currentStreak: 1,
+  const [userScore, setUserScore] = useState<UserScore>({
+    played: 0,
+    wins: 0,
+    lastGame: "loss",
+    currentStreak: 0,
   });
-
   const { user } = useUser();
 
-  const updateHighScore = () => {};
+  const updateHighScore = useCallback(async () => {
+    if (!user) return; // Check if user is logged in and if the score has already been updated
+
+    try {
+      const docRef = doc(FIRESTORE_DB, `highscore/${user.id}`);
+      const docSnap = await getDoc(docRef);
+
+      let newScore: UserScore = {
+        played: 1,
+        wins: win === "true" ? 1 : 0,
+        lastGame: win === "true" ? "win" : "loss",
+        currentStreak: win === "true" ? 1 : 0,
+      };
+
+      if (docSnap.exists()) {
+        const data = docSnap.data() as UserScore;
+
+        newScore = {
+          played: data.played + 1,
+          wins: win === "true" ? data.wins + 1 : data.wins,
+          lastGame: win === "true" ? "win" : "loss",
+          currentStreak:
+            win === "true" && data.lastGame === "win"
+              ? data.currentStreak + 1
+              : win === "true"
+                ? 1
+                : 0,
+        };
+      }
+
+      await setDoc(docRef, newScore);
+      setUserScore(newScore);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error updating high score: ", error);
+    }
+  }, [user, win]);
+
+  useEffect(() => {
+    if (user) {
+      updateHighScore();
+    } else {
+      setIsLoading(false);
+    }
+  }, [updateHighScore, user]);
 
   const navigateRoot = () => {
     router.dismissAll();
@@ -64,6 +119,14 @@ const EndScreen = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center" }]}>
+        <ActivityIndicator size={"large"} color={Theme.gray} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -88,11 +151,16 @@ const EndScreen = () => {
         <ThemedText style={styles.title}>
           {win === "true" ? "Congratulations" : "Thanks for playing today!"}
         </ThemedText>
+
         {win !== "true" && (
-          <ThemedText style={styles.guessedWord}>
-            The word was: {word}
-          </ThemedText>
+          <View style={styles.guessedWordContainer}>
+            <ThemedText style={styles.guessedWordLabel}>
+              The word was:
+            </ThemedText>
+            <ThemedText style={styles.guessedWord}>{word}</ThemedText>
+          </View>
         )}
+
         <SignedOut>
           <ThemedText style={styles.text}>
             Want to see your stats and streaks?
@@ -132,7 +200,9 @@ const EndScreen = () => {
               <ThemedText style={styles.score}>
                 {userScore.currentStreak}
               </ThemedText>
-              <ThemedText>Current Streak</ThemedText>
+              <ThemedText style={{ textAlign: "center" }}>
+                Current{"\n"}Streak
+              </ThemedText>
             </View>
           </View>
         </SignedIn>
@@ -182,8 +252,8 @@ const styles = StyleSheet.create({
   image: {
     height: 100,
     width: 100,
-    backgroundColor: "#FFF",
-    borderRadius: 13,
+    backgroundColor: "#fff",
+    borderRadius: 11,
   },
   title: {
     fontSize: 30,
@@ -195,11 +265,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "FrankRuhlLibre_500Medium",
   },
-  guessedWord: {
+  guessedWordContainer: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: "#fbe7e0",
+    borderWidth: 2,
+    borderColor: "#ff6347",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  guessedWordLabel: {
     fontSize: 20,
+    fontWeight: "bold",
     textAlign: "center",
+    color: "#444", // Color neutro para el texto explicativo
+  },
+  guessedWord: {
+    fontSize: 30, // Fuente más grande para la palabra
+    fontWeight: "bold", // Negritas
+    color: "#ff6347", // Color llamativo
+    textTransform: "uppercase", // Mayúsculas
     marginTop: 10,
-    fontFamily: "FrankRuhlLibre_500Medium",
   },
   btn: {
     justifyContent: "center",
@@ -225,6 +312,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     gap: 10,
     width: "100%",
+    marginBottom: 15,
   },
   score: {
     fontSize: 20,
