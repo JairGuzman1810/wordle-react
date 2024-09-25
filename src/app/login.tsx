@@ -46,8 +46,6 @@ const LoginScreen = () => {
     try {
       const { createdSessionId, setActive } = await selectedAuth();
 
-      console.log("onSelected ~ createdSessionId", createdSessionId);
-
       if (createdSessionId) {
         setActive!({ session: createdSessionId });
         if (Platform.OS === "ios") router.back();

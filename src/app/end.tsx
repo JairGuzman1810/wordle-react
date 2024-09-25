@@ -15,7 +15,6 @@ import {
 } from "react-native";
 import { ThemedText } from "../components/ThemedText";
 import { Colors } from "../constants/Colors";
-import { logoImageUri } from "../constants/Images";
 import { FIRESTORE_DB } from "../utils/firebaseConfig";
 
 // Define the explicit type for userScore
@@ -146,7 +145,7 @@ const EndScreen = () => {
             </View>
           </View>
         ) : (
-          <Image style={styles.image} source={{ uri: logoImageUri }} />
+          <Image style={styles.image} source={require("@images/logo.png")} />
         )}
         <ThemedText style={styles.title}>
           {win === "true" ? "Congratulations" : "Thanks for playing today!"}

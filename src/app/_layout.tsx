@@ -26,7 +26,6 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useMMKVBoolean } from "react-native-mmkv";
 import { Colors } from "../constants/Colors";
-import { nytLogoImageDarkUri, nytLogoImageUri } from "../constants/Images";
 import { storage } from "../utils/storage";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
@@ -57,6 +56,7 @@ export default function RootLayout() {
   }, [loaded, error]);
 
   useEffect(() => {
+    if (Platform.OS === "web") return;
     Appearance.setColorScheme(dark ? "dark" : "light");
   }, [dark]);
 
@@ -102,12 +102,11 @@ export default function RootLayout() {
                           width: 150,
                           height: 50,
                         }}
-                        source={{
-                          uri:
-                            colorScheme === "dark"
-                              ? nytLogoImageDarkUri
-                              : nytLogoImageUri,
-                        }}
+                        source={
+                          colorScheme === "dark"
+                            ? require("@images/nyt-logo-dark.png")
+                            : require("@images/nyt-logo.png")
+                        }
                       />
                     ),
                     headerBackVisible: false,

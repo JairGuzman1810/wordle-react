@@ -5,6 +5,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Stack, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Platform,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
@@ -21,7 +22,7 @@ import Animated, {
   withTiming,
   ZoomIn,
 } from "react-native-reanimated";
-import Keyboard from "../components/Keyboard";
+import Keyboard, { BACKSPACE, ENTER } from "../components/Keyboard";
 import SettingsModal from "../components/SettingsModal";
 import { Colors, GRAY, GREEN, YELLOW } from "../constants/Colors";
 import { words, wordsSPA } from "../utils/answerWords";
@@ -30,6 +31,7 @@ import { storage } from "../utils/storage";
 
 const ROWS = 6; // Number of rows in the game (attempts)
 const COLUMNS = 5; // Number of columns (letters in the word)
+const ALPHABET_REGEX = /^[a-zA-Z]$/;
 
 const GameScreen = () => {
   const { width, height } = useWindowDimensions(); // Get screen dimensions for responsive design
@@ -167,10 +169,7 @@ const GameScreen = () => {
   const checkWord = () => {
     const currentWord = rows[curRow].join(""); // Get the word formed in the current row
 
-    console.log(`Current Word: ${currentWord}`); // Debugging log
-
     if (currentWord.length < word.length) {
-      console.log("Shaking row for short word"); // Debugging log
       shakeRow();
       return;
     }
@@ -179,7 +178,6 @@ const GameScreen = () => {
     const validWords = isSpanish ? allWordsSPA : allWords;
 
     if (!validWords.includes(currentWord)) {
-      console.log("Shaking row for invalid word"); // Debugging log
       shakeRow();
       return;
     }
@@ -335,6 +333,30 @@ const GameScreen = () => {
       );
     });
   }, [curRow]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        addKey(ENTER);
+      } else if (e.key === "Backspace") {
+        addKey(BACKSPACE);
+      } else if (ALPHABET_REGEX.test(e.key)) {
+        // Verifica si la tecla es una letra
+        addKey(e.key);
+      }
+    };
+
+    if (Platform.OS === "web") {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    // Don't forget to clean up
+    return () => {
+      if (Platform.OS === "web") {
+        document.removeEventListener("keydown", handleKeyDown);
+      }
+    };
+  }, [curCol]);
 
   return (
     <View style={styles.container}>

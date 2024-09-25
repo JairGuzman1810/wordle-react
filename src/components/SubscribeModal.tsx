@@ -1,5 +1,4 @@
 import { Colors } from "@constants/Colors";
-import { gamesImageUri } from "@constants/Images";
 import { defaultStyles } from "@constants/Styles";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -92,7 +91,7 @@ const SubscribeModal = ({ bottomSheetRef }: SubscribeModalProps) => {
           <ThemedText style={styles.containerHeadline}>
             Unlimited Play.{"\n"}Try free for 7 days.
           </ThemedText>
-          <Image source={{ uri: gamesImageUri }} style={styles.image} />
+          <Image source={require("@images/games.png")} style={styles.image} />
           <View style={styles.benefitsContainer}>
             <MarkedList counterRenderer={disc} lineStyle={styles.benefitList}>
               {BENEFITS.map((value, index) => (
@@ -174,6 +173,7 @@ const styles = StyleSheet.create({
     width: "90%",
     height: 40,
     alignSelf: "center",
+    resizeMode: "contain",
   },
   benefitsContainer: {
     marginVertical: 20,

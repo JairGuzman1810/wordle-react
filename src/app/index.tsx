@@ -2,7 +2,6 @@ import { SignedIn, SignedOut, useClerk } from "@clerk/clerk-expo";
 import SubscribeModal from "@components/SubscribeModal";
 import { ThemedText } from "@components/ThemedText";
 import { Colors } from "@constants/Colors";
-import { logoImageUri } from "@constants/Images";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { format } from "date-fns";
 import { Link } from "expo-router";
@@ -37,7 +36,7 @@ export default function MenuScreen() {
   return (
     <View style={[styles.container, { backgroundColor: Theme.background }]}>
       <Animated.View style={styles.header} entering={FadeInDown}>
-        <Image style={styles.image} source={{ uri: logoImageUri }} />
+        <Image style={styles.image} source={require("@images/logo.png")} />
         <ThemedText style={styles.title}>Wordle</ThemedText>
         <ThemedText style={styles.text}>
           Get 6 changes to guess 5-letter word
