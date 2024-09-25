@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Stack, useRouter } from "expo-router";
@@ -10,9 +11,17 @@ import {
   View,
 } from "react-native";
 import { useMMKVBoolean } from "react-native-mmkv";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+  ZoomIn,
+} from "react-native-reanimated";
 import Keyboard from "../components/Keyboard";
 import SettingsModal from "../components/SettingsModal";
-import { ThemedText } from "../components/ThemedText";
 import { Colors, GRAY, GREEN, YELLOW } from "../constants/Colors";
 import { words, wordsSPA } from "../utils/answerWords";
 import { allWords, allWordsSPA } from "../utils/guessWords";
@@ -58,6 +67,10 @@ const GameScreen = () => {
     new Array(ROWS).fill("").map(() => new Array(COLUMNS).fill("transparent"))
   );
 
+  const [cellBorders, setCellBorders] = useState<string[][]>(
+    new Array(ROWS).fill("").map(() => new Array(COLUMNS).fill(Theme.gray))
+  );
+
   // Track the result of the game (win or lose), initially null
   const [gameResult, setGameResult] = useState<null | { win: boolean }>(null);
 
@@ -86,13 +99,16 @@ const GameScreen = () => {
     setCellColors(
       new Array(ROWS).fill("").map(() => new Array(COLUMNS).fill("transparent"))
     );
+    setCellBorders(
+      new Array(ROWS).fill("").map(() => new Array(COLUMNS).fill(Theme.gray))
+    );
 
     // Select a new word based on the language
     const newWord = (isSpanish ? wordsSPA : words)[
       Math.floor(Math.random() * (isSpanish ? wordsSPA : words).length)
     ];
     setWord(newWord);
-  }, [isSpanish]);
+  }, [Theme.gray, isSpanish]);
 
   // Helper function to convert the color grid into a string of emoji representations
   const convertToEmojiGrid = (
@@ -116,9 +132,7 @@ const GameScreen = () => {
     const newRows = rows.map((row) => [...row]); // Create a copy of the current rows
 
     if (key === "ENTER") {
-      if (curCol === COLUMNS) {
-        checkWord(); // If the player pressed "ENTER" and the row is complete, check the word
-      }
+      checkWord();
     } else if (key === "BACKSPACE") {
       if (curCol > 0) {
         // Remove the last typed letter if backspace is pressed
@@ -138,8 +152,11 @@ const GameScreen = () => {
   const checkWord = () => {
     const currentWord = rows[curRow].join(""); // Get the word formed in the current row
 
+    console.log(`Current Word: ${currentWord}`); // Debugging log
+
     if (currentWord.length < word.length) {
-      console.log("Not enough letters");
+      console.log("Shaking row for short word"); // Debugging log
+      shakeRow();
       return;
     }
 
@@ -147,14 +164,18 @@ const GameScreen = () => {
     const validWords = isSpanish ? allWordsSPA : allWords;
 
     if (!validWords.includes(currentWord)) {
-      console.log("Not a word"); // Check if the entered word is valid
+      console.log("Shaking row for invalid word"); // Debugging log
+      shakeRow();
       return;
     }
+
+    flipRow();
 
     const newGreenLetters: string[] = [];
     const newYellowLetters: string[] = [];
     const newGrayLetters: string[] = [];
     const newColors = [...cellColors.map((row) => [...row])]; // Copy current colors
+    const newBorders = [...cellBorders.map((row) => [...row])]; // Copy current borders
 
     // Frequency map for the target word
     const targetLetterFreq: { [key: string]: number } = {};
@@ -167,6 +188,7 @@ const GameScreen = () => {
     rows[curRow].forEach((letter, index) => {
       if (letter === wordLetters[index]) {
         newColors[curRow][index] = GREEN; // Set cell color to green
+        newBorders[curRow][index] = GREEN; // Set border color to green
         newGreenLetters.push(letter); // Add letter to green letters
         targetLetterFreq[letter]--; // Decrement frequency of that letter in the target word
       }
@@ -178,16 +200,19 @@ const GameScreen = () => {
 
       if (targetLetterFreq[letter]) {
         newColors[curRow][index] = YELLOW; // Set cell color to yellow
+        newBorders[curRow][index] = YELLOW; // Set border color to yellow
         newYellowLetters.push(letter); // Add letter to yellow letters
         targetLetterFreq[letter]--; // Decrement frequency of that letter
       } else {
         newColors[curRow][index] = GRAY; // Set cell color to gray (letter not in the word)
+        newBorders[curRow][index] = GRAY; // Set border color to gray
         newGrayLetters.push(letter);
       }
     });
 
     // Update the state with the new colors and guessed letters
     setCellColors(newColors);
+    setCellBorders(newBorders); // Make sure to set the new borders state
     setGreenLetters([...greenLetters, ...newGreenLetters]);
     setYellowLetters([...yellowLetters, ...newYellowLetters]);
     setGrayLetters([...grayLetters, ...newGrayLetters]);
@@ -202,26 +227,69 @@ const GameScreen = () => {
     setCurCol(0); // Reset column to the beginning
   };
 
-  // Function to get the background color of a cell based on its position
-  const getCellColor = (rowIndex: number, cellIndex: number) => {
-    return cellColors[rowIndex][cellIndex] || "transparent"; // Return the cell color or transparent if not colored yet
-  };
-
   // Calculate cell size based on screen width and height
   const cellSize = Math.min((width - 40) / COLUMNS, height * 0.085);
 
-  const getBorderColor = (rowIndex: number, cellIndex: number) => {
-    // Check if the current row is greater than the row index (previous rows)
-    if (curRow > rowIndex) {
-      return getCellColor(rowIndex, cellIndex); // If the row is completed, use the cell color
-    }
+  //Animations
+  //SHAKE
+  const offsetShakes = Array.from({ length: ROWS }, () => useSharedValue(0));
 
-    // Check if the cell contains a letter and is not in the current row
-    if (rows[rowIndex][cellIndex] !== "") {
-      return Theme.text; // If the cell is not empty and not the current row, use Theme.descriptionText for the border color
-    }
+  const rowStyles = Array.from({ length: ROWS }, (_, index) =>
+    useAnimatedStyle(() => {
+      return {
+        transform: [{ translateX: offsetShakes[index].value }],
+      };
+    })
+  );
 
-    return Theme.gray; // Otherwise, use gray as the border color
+  const shakeRow = () => {
+    const TIME = 80;
+    const OFFSET = 10;
+
+    offsetShakes[curRow].value = withSequence(
+      withTiming(-OFFSET, { duration: TIME / 2 }),
+      withRepeat(withTiming(OFFSET, { duration: TIME }), 4, true),
+      withTiming(0, { duration: TIME / 2 })
+    );
+  };
+
+  //FLIP
+  const tileRotates = Array.from({ length: ROWS }, () =>
+    Array.from({ length: 5 }, () => useSharedValue(0))
+  );
+
+  const tileStyles = Array.from({ length: ROWS }, (_, index) => {
+    return Array.from({ length: COLUMNS }, (_, tileIndex) =>
+      useAnimatedStyle(() => {
+        // Check if the current tile is in a previous row or a previous column in the current row
+        const isCurrentRow = index === curRow;
+        const isPreviousColumnInCurrentRow =
+          index === curRow && tileIndex < curCol;
+
+        return {
+          transform: [{ rotateX: `${tileRotates[index][tileIndex].value}deg` }],
+          borderColor:
+            isCurrentRow && isPreviousColumnInCurrentRow
+              ? Theme.text // Use a different color for previous cells
+              : cellBorders[index][tileIndex], // Use the default color for other cells
+          backgroundColor: cellColors[index][tileIndex],
+        };
+      })
+    );
+  });
+  const flipRow = () => {
+    const TIME = 300;
+    const OFFSET = 90;
+
+    tileRotates[curRow].forEach((value, index) => {
+      value.value = withDelay(
+        index * 100,
+        withSequence(
+          withTiming(OFFSET, { duration: TIME }, () => {}),
+          withTiming(0, { duration: TIME })
+        )
+      );
+    });
   };
 
   return (
@@ -249,33 +317,39 @@ const GameScreen = () => {
       />
       <View style={styles.gameField}>
         {rows.map((row, rowIndex) => (
-          <View style={styles.gameFieldRow} key={`row-${rowIndex}`}>
+          <Animated.View
+            style={[styles.gameFieldRow, rowStyles[rowIndex]]}
+            key={`row-${rowIndex}`}
+          >
             {row.map((cell, cellIndex) => (
-              <View
-                style={[
-                  styles.cell,
-                  {
-                    width: cellSize,
-                    height: cellSize,
-                  },
-                  {
-                    backgroundColor: getCellColor(rowIndex, cellIndex),
-                    borderColor: getBorderColor(rowIndex, cellIndex),
-                  },
-                ]}
+              <Animated.View
+                entering={ZoomIn.delay(50 * cellIndex)}
                 key={`cell-${rowIndex}-${cellIndex}`}
               >
-                <ThemedText
+                <Animated.View
                   style={[
-                    styles.cellText,
-                    { color: curRow > rowIndex ? "#fff" : Theme.text },
+                    styles.cell,
+                    {
+                      width: cellSize,
+                      height: cellSize,
+                    },
+                    tileStyles[rowIndex][cellIndex],
                   ]}
                 >
-                  {cell}
-                </ThemedText>
-              </View>
+                  <Animated.Text
+                    style={[
+                      styles.cellText,
+                      {
+                        color: curRow > rowIndex ? "#fff" : Theme.text,
+                      },
+                    ]}
+                  >
+                    {cell}
+                  </Animated.Text>
+                </Animated.View>
+              </Animated.View>
             ))}
-          </View>
+          </Animated.View>
         ))}
       </View>
       <Keyboard
@@ -313,6 +387,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
+    width: 62,
+    height: 62,
   },
   cellText: {
     fontSize: 30,
