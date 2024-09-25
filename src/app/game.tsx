@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-hooks/rules-of-hooks */
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -103,12 +104,26 @@ const GameScreen = () => {
       new Array(ROWS).fill("").map(() => new Array(COLUMNS).fill(Theme.gray))
     );
 
+    cellBackground.forEach((row, rowIndex) => {
+      row.forEach((_, cellIndex) => {
+        // Reset each cell background to "transparent"
+        cellBackground[rowIndex][cellIndex].value = withTiming("transparent", {
+          duration: 300,
+        });
+
+        // Reset each cell border to the default color (e.g., Theme.gray)
+        cellBorder[rowIndex][cellIndex].value = withTiming(Theme.gray, {
+          duration: 300,
+        });
+      });
+    });
+
     // Select a new word based on the language
     const newWord = (isSpanish ? wordsSPA : words)[
       Math.floor(Math.random() * (isSpanish ? wordsSPA : words).length)
     ];
     setWord(newWord);
-  }, [Theme.gray, isSpanish]);
+  }, [isSpanish]);
 
   // Helper function to convert the color grid into a string of emoji representations
   const convertToEmojiGrid = (
@@ -258,25 +273,34 @@ const GameScreen = () => {
     Array.from({ length: 5 }, () => useSharedValue(0))
   );
 
+  const cellBackground = Array.from({ length: ROWS }, () =>
+    Array.from({ length: 5 }, () => useSharedValue("transparent"))
+  );
+
+  const cellBorder = Array.from({ length: ROWS }, () =>
+    Array.from({ length: 5 }, () => useSharedValue(Theme.gray))
+  );
+
+  // Example of how to use interpolateColor
   const tileStyles = Array.from({ length: ROWS }, (_, index) => {
     return Array.from({ length: COLUMNS }, (_, tileIndex) =>
       useAnimatedStyle(() => {
-        // Check if the current tile is in a previous row or a previous column in the current row
+        // Map animated value to colors
         const isCurrentRow = index === curRow;
         const isPreviousColumnInCurrentRow =
           index === curRow && tileIndex < curCol;
-
         return {
           transform: [{ rotateX: `${tileRotates[index][tileIndex].value}deg` }],
+          backgroundColor: cellBackground[index][tileIndex].value,
           borderColor:
             isCurrentRow && isPreviousColumnInCurrentRow
               ? Theme.text // Use a different color for previous cells
-              : cellBorders[index][tileIndex], // Use the default color for other cells
-          backgroundColor: cellColors[index][tileIndex],
+              : cellBorder[index][tileIndex].value,
         };
       })
     );
   });
+
   const flipRow = () => {
     const TIME = 300;
     const OFFSET = 90;
@@ -291,6 +315,26 @@ const GameScreen = () => {
       );
     });
   };
+
+  useEffect(() => {
+    if (curRow === 0) return;
+
+    const currentRow = curRow - 1; // Adjusting for zero-based index
+
+    rows[currentRow].forEach((cell, cellIndex) => {
+      // Update cell background with delay
+      cellBackground[currentRow][cellIndex].value = withDelay(
+        cellIndex * 180, // Delay based on cell index
+        withTiming(cellColors[currentRow][cellIndex]) // Use the color from state
+      );
+
+      // Update cell border with delay
+      cellBorder[currentRow][cellIndex].value = withDelay(
+        cellIndex * 180, // Delay based on cell index
+        withTiming(cellBorders[currentRow][cellIndex]) // Use the border color from state
+      );
+    });
+  }, [curRow]);
 
   return (
     <View style={styles.container}>
